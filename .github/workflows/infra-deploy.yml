@@ -1,0 +1,25 @@
+name: Infrastructure Deployment
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy Infrastructure
+    uses: ./.github/workflows/terraform-template.yml
+    secrets: inherit
+    with:
+      componentName: "shared"
+      environments: |
+        [
+          {
+            "environment": "Development",
+            "region": "eastus"
+          },
+          {
+            "environment": "QA",
+            "region": "eastus"
+          }
+        ]

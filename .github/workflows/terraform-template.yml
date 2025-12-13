@@ -1,0 +1,88 @@
+name: Terraform Template
+
+on:
+  workflow_call:
+    inputs:
+      componentName:
+        required: true
+        type: string
+        description: "The name of the component to deploy"
+      environments:
+        required: true
+        type: string
+        description: "JSON string defining the environments and regions (array of objects)"
+
+jobs:
+  terraform:
+    name: ${{ matrix.environment }} - ${{ matrix.region }}
+    runs-on: ubuntu-latest
+    environment: ${{ matrix.environment }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(inputs.environments) }}
+    
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+
+    env:
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      ARM_USE_OIDC: true
+
+    steps:
+      - name: 🏗️ Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🔑 Log in to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: ⚙️ Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: 🚀 Terraform Init
+        run: |
+          # Initializing Terraform with backend configuration from secrets
+          # Appending environment and region to the key to ensure state isolation
+          terraform init \
+            -backend-config="resource_group_name=${{ secrets.TF_BACKEND_RESOURCE_GROUP }}" \
+            -backend-config="storage_account_name=${{ secrets.TF_BACKEND_STORAGE_ACCOUNT }}" \
+            -backend-config="container_name=${{ secrets.TF_BACKEND_CONTAINER }}" \
+            -backend-config="key=${{ secrets.TF_BACKEND_KEY }}.${{ matrix.environment }}.${{ matrix.region }}"
+
+      - name: 🔍 Terraform Validate
+        run: terraform validate
+
+      - name: 📋 Terraform Plan
+        id: plan
+        run: |
+          # Convert environment name to lowercase to match folder naming convention
+          ENV_LOWER=$(echo "${{ matrix.environment }}" | tr '[:upper:]' '[:lower:]')
+          TFVARS_FILE="environments/${ENV_LOWER}/terraform.tfvars"
+          
+          if [ -f "$TFVARS_FILE" ]; then
+            echo "Using tfvars file: $TFVARS_FILE"
+            TFVARS_ARG="-var-file=$TFVARS_FILE"
+          else
+            echo "Warning: tfvars file not found at $TFVARS_FILE"
+            TFVARS_ARG=""
+          fi
+          
+          terraform plan \
+            $TFVARS_ARG \
+            -var "env_name=${{ matrix.environment }}" \
+            -var "region=${{ matrix.region }}" \
+            -var "componentName=${{ inputs.componentName }}" \
+            -out=tfplan
+
+      - name: 🚢 Terraform Apply
+        if: github.event_name != 'pull_request'
+        run: |
+          terraform apply -auto-approve tfplan
