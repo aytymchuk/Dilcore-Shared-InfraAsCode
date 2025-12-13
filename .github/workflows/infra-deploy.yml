@@ -21,10 +21,10 @@ jobs:
         [
           {
             "environment": "Development",
-            "region": "eastus"
+            "region": "westeurope"
           },
           {
             "environment": "QA",
-            "region": "eastus"
+            "region": "westeurope"
           }
         ]
