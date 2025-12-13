@@ -37,6 +37,8 @@ jobs:
         -backend-config="storage_account_name=${{ secrets.TF_BACKEND_STORAGE_ACCOUNT }}"
         -backend-config="container_name=${{ secrets.TF_BACKEND_CONTAINER }}"
         -backend-config="key=${{ secrets.TF_BACKEND_KEY }}.${{ matrix.environment }}.${{ matrix.region }}"
+        -backend-config="subscription_id=${{ secrets.TF_BACKEND_SUBSCRIPTION_ID }}"
+        -backend-config="tenant_id=${{ secrets.TF_BACKEND_TENANT_ID }}"
 
     steps:
       - name: 🏗️ Checkout Code
