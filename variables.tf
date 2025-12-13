@@ -2,8 +2,8 @@ variable "env_name" {
   description = "The name of the environment (e.g., development, staging, production). Populated in the pipeline."
   type        = string
   validation {
-    condition     = length(var.env_name) >= 3
-    error_message = "The env_name must be at least 3 characters long."
+    condition     = length(var.env_name) >= 2
+    error_message = "The env_name must be at least 2 characters long."
   }
 }
 
