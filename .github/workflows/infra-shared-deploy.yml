@@ -1,6 +1,10 @@
 name: Shared Infrastructure Deployment
 
 on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'infra/shared/**'
   pull_request:
     branches: [ main ]
     paths:
