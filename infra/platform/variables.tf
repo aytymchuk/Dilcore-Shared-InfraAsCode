@@ -75,3 +75,62 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "app_name" {
+  description = "The name of the application."
+  type        = string
+}
+
+variable "container_app_env_id" {
+  description = "The ID of the Container App Environment."
+  type        = string
+  default = "$(SHARED_CONTAINER_APP_ENV_ID)"
+}
+
+variable "revision_mode" {
+  description = "The revision mode for the Container App (e.g., Single, Multiple)."
+  type        = string
+  default     = "Single"
+}
+
+variable "app_identity_type" {
+  description = "The type of identity for the Container App."
+  type        = string
+  default     = "SystemAssigned"
+}
+
+variable "image_name" {
+  description = "The container image name."
+  type        = string
+  default     = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
+}
+
+variable "container_cpu" {
+  description = "The number of CPU cores for the container."
+  type        = number
+  default     = 0.5
+}
+
+variable "container_memory" {
+  description = "The amount of memory for the container (e.g., 1Gi, 2Gi)."
+  type        = string
+  default     = "1.0Gi"
+}
+
+variable "app_config_endpoint" {
+  description = "The endpoint of the App Configuration."
+  type        = string
+  default = "$(SHARED_APP_CONFIGURATION_ENDPOINT)"
+}
+
+variable "dotnet_env_name" {
+  description = "The ASP.NET Core environment name (e.g., Development, Production)."
+  type        = string
+  default     = "Development"
+}
+
+variable "app_config_id" {
+  description = "The ID of the App Configuration store."
+  type        = string
+  default = "$(SHARED_APP_CONFIGURATION_ID)"
+}
