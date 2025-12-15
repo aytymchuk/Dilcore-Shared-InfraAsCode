@@ -1,0 +1,26 @@
+name: Platform Infrastructure Deployment
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'infra/platform/**'
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  deploy:
+    name: Deploy Platform
+    uses: ./.github/workflows/infra-template.yml
+    secrets: inherit
+    with:
+      componentName: "platform"
+      environments: |
+        [
+          { "environment": "Development", "region": "westeurope" },
+          { "environment": "QA", "region": "westeurope" }
+        ]

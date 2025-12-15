@@ -1,0 +1,153 @@
+name: Terraform Template
+
+on:
+  workflow_call:
+    inputs:
+      componentName:
+        required: true
+        type: string
+        description: "The name of the component to deploy"
+      environments:
+        required: true
+        type: string
+        description: "JSON string defining the environments and regions (array of objects)"
+
+jobs:
+  terraform:
+    name: ${{ matrix.environment }} - ${{ matrix.region }}
+    runs-on: ubuntu-latest
+    environment: ${{ matrix.environment }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(inputs.environments) }}
+    
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+
+    env:
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      ARM_USE_OIDC: true
+
+    steps:
+      - name: 🏗️ Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🔑 Log in to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: ⚙️ Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: 🚀 Terraform Init
+        working-directory: ./infra/${{ inputs.componentName }}
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=${{ secrets.TF_BACKEND_RESOURCE_GROUP }}" \
+            -backend-config="storage_account_name=${{ secrets.TF_BACKEND_STORAGE_ACCOUNT }}" \
+            -backend-config="container_name=${{ secrets.TF_BACKEND_CONTAINER }}" \
+            -backend-config="key=${{ secrets.TF_BACKEND_KEY }}.${{ inputs.componentName }}.${{ matrix.environment }}.${{ matrix.region }}" \
+            -backend-config="subscription_id=${{ secrets.TF_BACKEND_SUBSCRIPTION_ID }}" \
+            -backend-config="tenant_id=${{ secrets.TF_BACKEND_TENANT_ID }}"
+
+      - name: 🔍 Terraform Validate
+        working-directory: ./infra/${{ inputs.componentName }}
+        run: terraform validate
+
+      - name: 📋 Terraform Plan
+        id: plan
+        working-directory: ./infra/${{ inputs.componentName }}
+        run: |
+          ENV_LOWER=$(echo "${{ matrix.environment }}" | tr '[:upper:]' '[:lower:]')
+          TFVARS_FILE="environments/${ENV_LOWER}/terraform.tfvars"
+          
+          if [ -f "$TFVARS_FILE" ]; then
+            echo "Using tfvars file: $TFVARS_FILE"
+            TFVARS_ARG="-var-file=$TFVARS_FILE"
+          else
+            echo "Warning: tfvars file not found at $TFVARS_FILE"
+            TFVARS_ARG=""
+          fi
+          
+          terraform plan \
+            $TFVARS_ARG \
+            -var "env_name=${{ matrix.environment }}" \
+            -var "region=${{ matrix.region }}" \
+            -var "componentName=${{ inputs.componentName }}" \
+            -out=tfplan
+
+      - name: 🚢 Terraform Apply
+        if: github.event_name != 'pull_request'
+        working-directory: ./infra/${{ inputs.componentName }}
+        run: |
+          terraform apply -auto-approve tfplan
+
+      - name: 📤 Export Outputs to Azure App Config
+        if: github.event_name != 'pull_request'
+        working-directory: ./infra/${{ inputs.componentName }}
+        shell: bash
+        run: |
+          # Get App Config name from Terraform output
+          APP_CONFIG_NAME=$(terraform output -raw app_configuration_name 2>/dev/null || echo "")
+
+          if [ -z "$APP_CONFIG_NAME" ]; then
+            echo "⚠️  App Configuration name not found in outputs, skipping export"
+            exit 0
+          fi
+
+          echo "📦 Using App Config: $APP_CONFIG_NAME"
+
+          # Export outputs to App Config
+          OUTPUTS_JSON=$(terraform output -json 2>/dev/null || echo "{}")
+
+          if [ "$OUTPUTS_JSON" == "{}" ]; then
+            echo "ℹ️  No outputs to export"
+            exit 0
+          fi
+
+          COMPONENT_UPPER=$(echo "${{ inputs.componentName }}" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
+
+          echo "$OUTPUTS_JSON" | jq -r 'to_entries[] | @json' | while IFS= read -r output; do
+            OUTPUT_NAME=$(echo "$output" | jq -r '.key')
+            IS_SENSITIVE=$(echo "$output" | jq -r '.value.sensitive')
+
+            if [ "$IS_SENSITIVE" == "true" ]; then
+              OUTPUT_VALUE=$(terraform output -raw "$OUTPUT_NAME" 2>/dev/null || echo "")
+            else
+              OUTPUT_VALUE=$(echo "$output" | jq -r '.value.value')
+              if echo "$output" | jq -e '.value.value | type' | grep -q "object\|array"; then
+                OUTPUT_VALUE=$(echo "$output" | jq -c '.value.value')
+              fi
+            fi
+
+            OUTPUT_NAME_UPPER=$(echo "$OUTPUT_NAME" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
+            APP_CONFIG_KEY="${COMPONENT_UPPER}_${OUTPUT_NAME_UPPER}"
+
+            if [ "$IS_SENSITIVE" == "true" ]; then
+              echo "🔐 Setting: $APP_CONFIG_KEY (label: ${{ matrix.environment }}) [sensitive]"
+            else
+              echo "📝 Setting: $APP_CONFIG_KEY (label: ${{ matrix.environment }}) = $OUTPUT_VALUE"
+            fi
+
+            # Set or update the key in Azure App Config (--yes allows updates)
+            if az appconfig kv set \
+              --name "$APP_CONFIG_NAME" \
+              --key "$APP_CONFIG_KEY" \
+              --value "$OUTPUT_VALUE" \
+              --label "${{ matrix.environment }}" \
+              --yes 2>&1; then
+              echo "✅ Successfully created/updated: $APP_CONFIG_KEY"
+            else
+              echo "❌ Failed to set $APP_CONFIG_KEY"
+            fi
+          done
+
+          echo "✨ Export completed!"

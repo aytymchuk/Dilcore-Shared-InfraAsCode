@@ -6,6 +6,6 @@ container_app_env_name = "container-app-env"
 
 tags = {
   "CreatedBy" = "Terraform"
-  "Environment" = "Development"
+  "Environment" = "qa"
   "Kind" = "Shared"
 }
