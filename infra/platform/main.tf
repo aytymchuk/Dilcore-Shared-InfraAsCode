@@ -6,7 +6,7 @@ resource "azurerm_resource_group" "resourceGroup" {
 }
 
 resource "azurerm_container_app" "api" {
-  name                          = "${var.env_name}-${var.app_name}-${var.region}"
+  name                          = "${var.env_name}-${var.api_name}-${var.region}"
   container_app_environment_id  = var.container_app_env_id
   resource_group_name           = azurerm_resource_group.resourceGroup.name
   revision_mode                 = var.revision_mode
@@ -17,7 +17,7 @@ resource "azurerm_container_app" "api" {
 
   template {
     container {
-      name   = var.app_name
+      name   = var.api_name
       image  = var.image_name
       cpu    = var.container_cpu
       memory = var.container_memory
@@ -60,7 +60,7 @@ resource "azurerm_role_assignment" "appconfig_access" {
 }
 
 resource "azurerm_storage_account" "storage_account" {
-  name                     = "${var.env_name}${var.app_name}${var.region}grainstorage"
+  name                     = "${var.env_name}${var.api_name}${var.region}grainstorage"
   resource_group_name      = azurerm_resource_group.resourceGroup.name
   location                 = azurerm_resource_group.resourceGroup.location
   account_tier             = "Standard"

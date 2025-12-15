@@ -76,7 +76,7 @@ variable "tags" {
   default     = {}
 }
 
-variable "app_name" {
+variable "api_name" {
   description = "The name of the application."
   type        = string
 }
