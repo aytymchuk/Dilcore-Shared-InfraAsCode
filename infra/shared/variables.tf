@@ -69,7 +69,7 @@ variable "kind_of_group" {
 
 variable "log_analytics_workspace_name" {
   description = "The name of the Log Analytics workspace"
-  default     = "laws" 
+  default     = "log" 
 }
 
 variable "log_analytics_sku" {
@@ -79,7 +79,7 @@ variable "log_analytics_sku" {
 
 variable "app_config_name" {
   description = "The name of the Azure App Configuration instance"
-  default     = "app-config"
+  default     = "appcs"
 }
 
 variable "app_config_sku" {
@@ -99,12 +99,12 @@ variable "app_config_access_role" {
 
 variable "app_config_identity_name" {
   description = "Azure Managed Identity name"
-  default     = "app-config-identity"
+  default     = "id"
 }
 
 variable "application_insights_name" {
   description = "The name of the Azure Application Insights resource"
-  default     = "appins"
+  default     = "appi"
 }
 
 variable "application_insights_kind" {
@@ -114,7 +114,7 @@ variable "application_insights_kind" {
 
 variable "container_app_env_name" {
   description = "The name of the Azure Container App Environment resource"
-  default     = "cont-app-env"
+  default     = "cae"
 }
 
 variable "tags" {
