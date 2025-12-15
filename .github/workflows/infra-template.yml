@@ -94,12 +94,24 @@ jobs:
         if: github.event_name != 'pull_request'
         working-directory: ./infra/${{ inputs.componentName }}
         shell: bash
+        env:
+          APP_CONFIG_NAME_SECRET: ${{ secrets.AZURE_APP_CONFIG_NAME }}
         run: |
-          # Get App Config name from Terraform output
-          APP_CONFIG_NAME=$(terraform output -raw app_configuration_name 2>/dev/null || echo "")
+          # Get App Config name
+          # Priority 1: Secret (for Platform/Service components that use Shared App Config)
+          # Priority 2: Terraform Output (for Shared component itself)
+          
+          APP_CONFIG_NAME="${APP_CONFIG_NAME_SECRET}"
+          
+          if [ -z "$APP_CONFIG_NAME" ]; then
+             echo "ℹ️  Secret APP_CONFIG_NAME not set, trying Terraform output..."
+             APP_CONFIG_NAME=$(terraform output -raw app_configuration_name 2>/dev/null || echo "")
+          else
+             echo "ℹ️  Using App Config Name from Secret: $APP_CONFIG_NAME"
+          fi
 
           if [ -z "$APP_CONFIG_NAME" ]; then
-            echo "⚠️  App Configuration name not found in outputs, skipping export"
+            echo "⚠️  App Configuration name not found in secrets or outputs, skipping export"
             exit 0
           fi
 
@@ -113,6 +125,7 @@ jobs:
             exit 0
           fi
 
+          # Convert Component Name to UPPERCASE (e.g. platform -> PLATFORM)
           COMPONENT_UPPER=$(echo "${{ inputs.componentName }}" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
 
           echo "$OUTPUTS_JSON" | jq -r 'to_entries[] | @json' | while IFS= read -r output; do
@@ -128,13 +141,16 @@ jobs:
               fi
             fi
 
+            # Convert Output Name to UPPERCASE (e.g. resource_group -> RESOURCE_GROUP)
             OUTPUT_NAME_UPPER=$(echo "$OUTPUT_NAME" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
+            
+            # Construct Key: COMPONENT_OUTPUTNAME (e.g. PLATFORM_RESOURCE_GROUP)
             APP_CONFIG_KEY="${COMPONENT_UPPER}_${OUTPUT_NAME_UPPER}"
 
             if [ "$IS_SENSITIVE" == "true" ]; then
               echo "🔐 Setting: $APP_CONFIG_KEY (label: ${{ matrix.environment }}) [sensitive]"
             else
-              echo "📝 Setting: $APP_CONFIG_KEY (label: ${{ matrix.environment }}) = $OUTPUT_VALUE"
+              echo "📝 Setting: $APP_CONFIG_KEY (label: ${{ matrix.environment }})"
             fi
 
             # Set or update the key in Azure App Config (--yes allows updates)
@@ -143,7 +159,7 @@ jobs:
               --key "$APP_CONFIG_KEY" \
               --value "$OUTPUT_VALUE" \
               --label "${{ matrix.environment }}" \
-              --yes 2>&1; then
+              --yes > /dev/null; then
               echo "✅ Successfully created/updated: $APP_CONFIG_KEY"
             else
               echo "❌ Failed to set $APP_CONFIG_KEY"
