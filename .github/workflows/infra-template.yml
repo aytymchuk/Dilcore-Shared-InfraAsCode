@@ -94,12 +94,24 @@ jobs:
         if: github.event_name != 'pull_request'
         working-directory: ./infra/${{ inputs.componentName }}
         shell: bash
+        env:
+          APP_CONFIG_NAME_SECRET: ${{ secrets.AZURE_APP_CONFIG_NAME }}
         run: |
-          # Get App Config name from Terraform output
-          APP_CONFIG_NAME=$(terraform output -raw app_configuration_name 2>/dev/null || echo "")
+          # Get App Config name
+          # Priority 1: Secret (for Platform/Service components that use Shared App Config)
+          # Priority 2: Terraform Output (for Shared component itself)
+          
+          APP_CONFIG_NAME="${APP_CONFIG_NAME_SECRET}"
+          
+          if [ -z "$APP_CONFIG_NAME" ]; then
+             echo "ℹ️  Secret APP_CONFIG_NAME not set, trying Terraform output..."
+             APP_CONFIG_NAME=$(terraform output -raw app_configuration_name 2>/dev/null || echo "")
+          else
+             echo "ℹ️  Using App Config Name from Secret: $APP_CONFIG_NAME"
+          fi
 
           if [ -z "$APP_CONFIG_NAME" ]; then
-            echo "⚠️  App Configuration name not found in outputs, skipping export"
+            echo "⚠️  App Configuration name not found in secrets or outputs, skipping export"
             exit 0
           fi
 
@@ -113,7 +125,9 @@ jobs:
             exit 0
           fi
 
-          COMPONENT_UPPER=$(echo "${{ inputs.componentName }}" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
+          # Convert Component Name to TitleCase (e.g. platform -> Platform)
+          # sed 's/\b./\u&/g' works for words, but let's be specific for hyphens/underscores
+          COMPONENT_TITLE=$(echo "${{ inputs.componentName }}" | sed -E 's/(^|-)([a-z])/\U\2/g')
 
           echo "$OUTPUTS_JSON" | jq -r 'to_entries[] | @json' | while IFS= read -r output; do
             OUTPUT_NAME=$(echo "$output" | jq -r '.key')
@@ -128,13 +142,16 @@ jobs:
               fi
             fi
 
-            OUTPUT_NAME_UPPER=$(echo "$OUTPUT_NAME" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
-            APP_CONFIG_KEY="${COMPONENT_UPPER}_${OUTPUT_NAME_UPPER}"
+            # Convert Output Name to TitleCase (e.g. resource_group -> ResourceGroup)
+            OUTPUT_NAME_TITLE=$(echo "$OUTPUT_NAME" | sed -E 's/(^|_)([a-z])/\U\2/g')
+            
+            # Construct Key: Component:OutputName (e.g. Platform:ResourceGroup)
+            APP_CONFIG_KEY="${COMPONENT_TITLE}:${OUTPUT_NAME_TITLE}"
 
             if [ "$IS_SENSITIVE" == "true" ]; then
               echo "🔐 Setting: $APP_CONFIG_KEY (label: ${{ matrix.environment }}) [sensitive]"
             else
-              echo "📝 Setting: $APP_CONFIG_KEY (label: ${{ matrix.environment }}) = $OUTPUT_VALUE"
+              echo "📝 Setting: $APP_CONFIG_KEY (label: ${{ matrix.environment }})"
             fi
 
             # Set or update the key in Azure App Config (--yes allows updates)
