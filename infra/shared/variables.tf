@@ -99,7 +99,7 @@ variable "app_config_access_role" {
 
 variable "app_config_identity_name" {
   description = "Azure Managed Identity name"
-  default     = "id"
+  default     = "id-appcs"
 }
 
 variable "application_insights_name" {
