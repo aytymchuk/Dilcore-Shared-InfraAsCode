@@ -60,14 +60,18 @@ locals {
   }
   
   resource_group_location = lookup(local.region_mapping, var.region, var.region)
+
+  default_tags = {
+    CreatedBy   = "Terraform"
+    Environment = var.env_name
+    Kind        = var.componentName
+  }
+
+  merged_tags = merge(local.default_tags, var.tags)
 }
 
 variable "tags" {
   description = "Tags to be applied to all resources"
   type        = map(string)
-  default     = {
-    "CreatedBy" = "Terraform"
-    "Environment" = "Development"
-    "Kind" = "Shared"
-  } 
+  default     = {}
 }
