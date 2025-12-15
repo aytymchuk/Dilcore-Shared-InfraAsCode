@@ -1,11 +1,3 @@
-provider "azurerm" {
-   features {
-     resource_group {
-       prevent_deletion_if_contains_resources = false
-     }
-   }
-}
-
 # Create a new Azure Resource Group
 resource "azurerm_resource_group" "resourceGroup" {
     name = "${var.env_name}-${var.componentName}-${var.region}-rg"

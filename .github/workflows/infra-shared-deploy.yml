@@ -1,0 +1,26 @@
+name: Shared Infrastructure Deployment
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'infra/shared/**'
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  deploy:
+    name: Deploy Shared
+    uses: ./.github/workflows/infra-template.yml
+    secrets: inherit
+    with:
+      componentName: "shared"
+      environments: |
+        [
+          { "environment": "Development", "region": "westeurope" },
+          { "environment": "QA", "region": "westeurope" }
+        ]
