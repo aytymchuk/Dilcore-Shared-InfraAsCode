@@ -125,9 +125,8 @@ jobs:
             exit 0
           fi
 
-          # Convert Component Name to TitleCase (e.g. platform -> Platform)
-          # sed 's/\b./\u&/g' works for words, but let's be specific for hyphens/underscores
-          COMPONENT_TITLE=$(echo "${{ inputs.componentName }}" | sed -E 's/(^|-)([a-z])/\U\2/g')
+          # Convert Component Name to UPPERCASE (e.g. platform -> PLATFORM)
+          COMPONENT_UPPER=$(echo "${{ inputs.componentName }}" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
 
           echo "$OUTPUTS_JSON" | jq -r 'to_entries[] | @json' | while IFS= read -r output; do
             OUTPUT_NAME=$(echo "$output" | jq -r '.key')
@@ -142,11 +141,11 @@ jobs:
               fi
             fi
 
-            # Convert Output Name to TitleCase (e.g. resource_group -> ResourceGroup)
-            OUTPUT_NAME_TITLE=$(echo "$OUTPUT_NAME" | sed -E 's/(^|_)([a-z])/\U\2/g')
+            # Convert Output Name to UPPERCASE (e.g. resource_group -> RESOURCE_GROUP)
+            OUTPUT_NAME_UPPER=$(echo "$OUTPUT_NAME" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
             
-            # Construct Key: Component:OutputName (e.g. Platform:ResourceGroup)
-            APP_CONFIG_KEY="${COMPONENT_TITLE}:${OUTPUT_NAME_TITLE}"
+            # Construct Key: COMPONENT_OUTPUTNAME (e.g. PLATFORM_RESOURCE_GROUP)
+            APP_CONFIG_KEY="${COMPONENT_UPPER}_${OUTPUT_NAME_UPPER}"
 
             if [ "$IS_SENSITIVE" == "true" ]; then
               echo "🔐 Setting: $APP_CONFIG_KEY (label: ${{ matrix.environment }}) [sensitive]"
@@ -160,7 +159,7 @@ jobs:
               --key "$APP_CONFIG_KEY" \
               --value "$OUTPUT_VALUE" \
               --label "${{ matrix.environment }}" \
-              --yes 2>&1; then
+              --yes > /dev/null; then
               echo "✅ Successfully created/updated: $APP_CONFIG_KEY"
             else
               echo "❌ Failed to set $APP_CONFIG_KEY"
