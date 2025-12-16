@@ -1,5 +1,7 @@
 # Dilcore-InfraAsCode
 
+[![CodeRabbit Reviews](https://img.shields.io/coderabbit/prs/github/aytymchuk/Dilcore-Shared-InfraAsCode?utm_source=oss&utm_medium=github&utm_campaign=aytymchuk%2FDilcore-Shared-InfraAsCode&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)](https://coderabbit.ai)
+
 This repository contains the Infrastructure as Code (IaC) definitions for the Dilcore project.
 
 ## Infra
