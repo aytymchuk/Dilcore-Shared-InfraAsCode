@@ -61,6 +61,8 @@ locals {
   
   resource_group_location = lookup(local.region_mapping, var.region, var.region)
 
+  env_short = substr(lower(var.env_name), 0, 3)
+
   default_tags = {
     CreatedBy   = "Terraform"
     Environment = var.env_name
@@ -79,6 +81,7 @@ variable "tags" {
 variable "api_name" {
   description = "The name of the application."
   type        = string
+  default = "api"
 }
 
 variable "container_app_env_id" {

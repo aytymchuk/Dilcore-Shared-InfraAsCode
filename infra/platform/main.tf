@@ -60,7 +60,7 @@ resource "azurerm_role_assignment" "appconfig_access" {
 }
 
 resource "azurerm_storage_account" "storage_account" {
-  name                     = "${var.env_name}${var.api_name}${var.region}grainstorage"
+  name                     = "${local.env_short}${var.api_name}${var.region}grainstorage"
   resource_group_name      = azurerm_resource_group.resourceGroup.name
   location                 = azurerm_resource_group.resourceGroup.location
   account_tier             = "Standard"
