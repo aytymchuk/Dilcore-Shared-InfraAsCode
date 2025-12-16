@@ -15,8 +15,8 @@ resource "random_password" "db_password" {
 }
 
 locals {
-  project_name = "${var.env_name}-${var.componentName}"
-  cluster_name = "${var.env_name}-${var.componentName}-${var.region}"
+  project_name = "${lower(var.env_name)}-${lower(var.componentName)}"
+  cluster_name = "${lower(var.env_name)}-${lower(var.componentName)}-${lower(var.region)}"
   db_username = random_string.db_username.result
   db_password = random_password.db_password.result
 }
