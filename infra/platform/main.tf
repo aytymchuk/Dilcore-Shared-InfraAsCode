@@ -70,6 +70,13 @@ resource "azurerm_storage_account" "storage_account" {
   is_hns_enabled         = false
   min_tls_version       = "TLS1_2"
   
+  # Security Hardening
+  allow_nested_items_to_be_public = false # Replaces allow_blob_public_access
+  
+  # Disabling public network access requires Private Endpoints or Service Endpoints 
+  # for the Container App to access this storage account.
+  public_network_access_enabled   = false
+
   tags = var.tags
 }
 
@@ -106,15 +113,10 @@ resource "azurerm_app_configuration_key" "storage_account_name" {
   ]
 }
 
-# Get current user
-data "azurerm_client_config" "current" {}
-
 # Add Azure Container App base URL to Azure App Configuration
 resource "azurerm_app_configuration_key" "add_app_ai_connect_str" {
   configuration_store_id = var.app_config_id
   key                    = "General:PlatformApi:BaseUrl"
   value                  = "https://${azurerm_container_app.api.ingress[0].fqdn}"
-  depends_on = [
-    data.azurerm_client_config.current
-  ]
+  depends_on = [ azurerm_container_app.api ]
 }

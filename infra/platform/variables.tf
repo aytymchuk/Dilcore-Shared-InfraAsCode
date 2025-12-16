@@ -84,6 +84,10 @@ variable "api_name" {
   description = "The name of the application."
   type        = string
   default = "api"
+  validation {
+    condition     = length(var.api_name) <= 8
+    error_message = "The api_name must be at most 8 characters long to ensure storage account name limits."
+  }
 }
 
 variable "container_app_env_id" {
