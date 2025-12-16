@@ -6,7 +6,7 @@ resource "azurerm_resource_group" "resourceGroup" {
 }
 
 resource "azurerm_container_app" "api" {
-  name                          = "${var.env_name}-${var.api_name}"
+  name                          = local.container_app_name
   container_app_environment_id  = var.container_app_env_id
   resource_group_name           = azurerm_resource_group.resourceGroup.name
   revision_mode                 = var.revision_mode

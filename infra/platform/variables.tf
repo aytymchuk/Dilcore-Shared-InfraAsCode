@@ -62,6 +62,8 @@ locals {
   resource_group_location = lookup(local.region_mapping, var.region, var.region)
 
   env_short = substr(lower(var.env_name), 0, 3)
+  
+  container_app_name = lower(replace("${var.env_name}-${var.api_name}", "/[^a-z0-9-]/", ""))
 
   default_tags = {
     CreatedBy   = "Terraform"
