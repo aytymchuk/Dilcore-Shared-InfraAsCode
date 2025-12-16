@@ -73,9 +73,9 @@ resource "azurerm_storage_account" "storage_account" {
   # Security Hardening
   allow_nested_items_to_be_public = false # Replaces allow_blob_public_access
   
-  # Disabling public network access requires Private Endpoints or Service Endpoints 
-  # for the Container App to access this storage account.
-  public_network_access_enabled   = false
+  # Enabling public network access is required because the Container App 
+  # is not VNet-integrated and lacks Private Endpoint connectivity.
+  public_network_access_enabled   = true
 
   tags = var.tags
 }
