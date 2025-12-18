@@ -1,0 +1,30 @@
+name: MongoDB Infrastructure Deployment
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'infra/mongodb/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'infra/mongodb/**'
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  deploy:
+    name: Deploy MongoDB
+    uses: ./.github/workflows/infra-template.yml
+    secrets: inherit
+    with:
+      componentName: "mongodb"
+      environments: |
+        [
+          { "environment": "Development", "region": "westeurope" },
+          { "environment": "QA", "region": "westeurope" }
+        ]
