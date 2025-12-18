@@ -1,6 +1,6 @@
 # Generate random username for database user
 resource "random_string" "db_username" {
-  length  = 8
+  length  = 16
   special = false
   upper   = false
 }
@@ -17,8 +17,8 @@ resource "random_password" "db_password" {
 locals {
   project_name = "${lower(var.env_name)}-${lower(var.componentName)}"
   cluster_name = "${lower(var.env_name)}-${lower(var.componentName)}-${lower(var.region)}"
-  db_username = random_string.db_username.result
-  db_password = random_password.db_password.result
+  db_username  = random_string.db_username.result
+  db_password  = random_password.db_password.result
 }
 
 # Create a Project
@@ -102,23 +102,56 @@ resource "mongodbatlas_project_ip_access_list" "additional_ips" {
   comment    = "Additional IP access for ${var.env_name}"
 }
 
-# Wait for cluster to be ready
+# Wait for cluster to be ready (Active Polling)
 resource "null_resource" "cluster_ready" {
   depends_on = [mongodbatlas_advanced_cluster.atlas_cluster]
-  
+
   triggers = {
     cluster_id = mongodbatlas_advanced_cluster.atlas_cluster.cluster_id
+  }
+
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    environment = {
+      PUBLIC_KEY   = var.mongodbatlas_public_key
+      PRIVATE_KEY  = var.mongodbatlas_private_key
+      GROUP_ID     = mongodbatlas_project.atlas_project.id
+      CLUSTER_NAME = mongodbatlas_advanced_cluster.atlas_cluster.name
+    }
+    command = <<-EOT
+      echo "Starting active polling for MongoDB Atlas cluster state..."
+      # Wait up to 10 minutes (60 iterations * 10 seconds)
+      for i in {1..60}; do
+        STATE=$(curl -s --digest -u "$PUBLIC_KEY:$PRIVATE_KEY" \
+          "https://cloud.mongodb.com/api/atlas/v1.0/groups/$GROUP_ID/clusters/$CLUSTER_NAME" \
+          | jq -r '.stateName')
+        
+        echo "Attempt $i: Cluster state is '$STATE'"
+        
+        if [ "$STATE" = "IDLE" ]; then
+          echo "Cluster is ready (IDLE state confirmed)."
+          exit 0
+        fi
+        
+        if [ "$i" -eq 60 ]; then
+          echo "Timeout waiting for cluster to become IDLE."
+          exit 1
+        fi
+        
+        sleep 10
+      done
+    EOT
   }
 }
 
 # Add MongoDB connection string to Azure App Configuration
 resource "azurerm_app_configuration_key" "mongodb_connection_string" {
   configuration_store_id = var.app_config_id
-  key                   = "General:MongoDbSettings:ConnectionString"
-  value                 = replace(mongodbatlas_advanced_cluster.atlas_cluster.connection_strings.standard_srv, 
-                                  "mongodb+srv://", "mongodb+srv://${mongodbatlas_database_user.atlas_db_user.username}:${mongodbatlas_database_user.atlas_db_user.password}@")
-  content_type          = "text/plain" 
-  
+  key                    = "General:MongoDbSettings:ConnectionString"
+  value = replace(mongodbatlas_advanced_cluster.atlas_cluster.connection_strings.standard_srv,
+  "mongodb+srv://", "mongodb+srv://${mongodbatlas_database_user.atlas_db_user.username}:${mongodbatlas_database_user.atlas_db_user.password}@")
+  content_type = "text/plain"
+
   depends_on = [
     mongodbatlas_advanced_cluster.atlas_cluster,
     null_resource.cluster_ready

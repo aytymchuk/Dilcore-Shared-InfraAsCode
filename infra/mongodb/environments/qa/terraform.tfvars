@@ -1,5 +1,5 @@
 tags = {
-  "CreatedBy" = "Terraform"
+  "CreatedBy"   = "Terraform"
   "Environment" = "QA"
-  "Kind" = "MongoDB"
+  "Kind"        = "MongoDB"
 }

@@ -118,23 +118,15 @@ variable "atlas_region_mapping" {
   type        = map(string)
   default = {
     # North America - M0 Supported
-    "centralus"        = "US_CENTRAL"
-    "eastus"           = "US_EAST"
-    "eastus2"          = "US_EAST_2"
-    "northcentralus"   = "US_NORTH_CENTRAL"
-    "westus"           = "US_WEST"
-    "westus2"          = "US_WEST_2"
-    "westus3"          = "US_WEST_3"
-    "westcentralus"    = "US_WEST_CENTRAL"
-    "southcentralus"   = "US_SOUTH_CENTRAL"
-    "brazilsouth"      = "BRAZIL_SOUTH"
-    "brazilsoutheast"  = "BRAZIL_SOUTHEAST"
-    "canadaeast"       = "CANADA_EAST"
-    "canadacentral"    = "CANADA_CENTRAL"
-    
+    "eastus2" = "US_EAST_2"
+    "westus"  = "US_WEST"
+
     # Europe - M0 Supported
-    "northeurope"      = "EUROPE_NORTH"
-    "westeurope"       = "EUROPE_WEST"
+    "westeurope" = "EUROPE_WEST"
+
+    # Asia - M0 Supported
+    "eastasia"      = "ASIA_EAST"
+    "southeastasia" = "ASIA_SOUTH_EAST"
   }
 }
 
@@ -143,7 +135,7 @@ variable "instance_size" {
   description = "MongoDB Atlas cluster instance size"
   type        = string
   default     = "M0"
-  
+
   validation {
     condition     = contains(["M0", "M2", "M5", "M10", "M20", "M30", "M40", "M50", "M60", "M80", "M100", "M140", "M200", "M300"], var.instance_size)
     error_message = "Instance size must be a valid MongoDB Atlas cluster tier."
@@ -154,7 +146,7 @@ variable "cluster_provider_name" {
   description = "MongoDB Atlas cluster provider name"
   type        = string
   default     = "TENANT"
-  
+
   validation {
     condition     = contains(["AWS", "GCP", "AZURE", "TENANT"], var.cluster_provider_name)
     error_message = "Provider name must be one of: AWS, GCP, AZURE, TENANT."
@@ -165,7 +157,7 @@ variable "backing_provider_name" {
   description = "MongoDB Atlas backing provider name (for M0 clusters)"
   type        = string
   default     = "AZURE"
-  
+
   validation {
     condition     = contains(["AWS", "GCP", "AZURE"], var.backing_provider_name)
     error_message = "Backing provider name must be one of: AWS, GCP, AZURE."
@@ -176,7 +168,7 @@ variable "cluster_priority" {
   description = "MongoDB Atlas cluster priority"
   type        = number
   default     = 7
-  
+
   validation {
     condition     = var.cluster_priority >= 0 && var.cluster_priority <= 7
     error_message = "Cluster priority must be between 0 and 7."
