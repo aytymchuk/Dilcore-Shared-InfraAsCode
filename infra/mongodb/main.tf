@@ -7,11 +7,12 @@ resource "random_string" "db_username" {
 
 # Generate random password for database user
 resource "random_password" "db_password" {
-  length  = 16
-  special = false
-  upper   = true
-  lower   = true
-  numeric = true
+  length           = 16
+  special          = true
+  upper            = true
+  lower            = true
+  numeric          = true
+  override_special = "!#$%&*()-_=+[]{}<>:?"
 }
 
 locals {
@@ -75,7 +76,7 @@ resource "mongodbatlas_database_user" "atlas_db_user" {
 
   roles {
     role_name     = "readWrite"
-    database_name = "admin"
+    database_name = var.app_database_name
   }
 
   labels {
@@ -148,9 +149,8 @@ resource "null_resource" "cluster_ready" {
 resource "azurerm_app_configuration_key" "mongodb_connection_string" {
   configuration_store_id = var.app_config_id
   key                    = "General:MongoDbSettings:ConnectionString"
-  value = replace(mongodbatlas_advanced_cluster.atlas_cluster.connection_strings.standard_srv,
-  "mongodb+srv://", "mongodb+srv://${mongodbatlas_database_user.atlas_db_user.username}:${mongodbatlas_database_user.atlas_db_user.password}@")
-  content_type = "text/plain"
+  value                  = "${replace(mongodbatlas_advanced_cluster.atlas_cluster.connection_strings.standard_srv, "mongodb+srv://", "mongodb+srv://${mongodbatlas_database_user.atlas_db_user.username}:${mongodbatlas_database_user.atlas_db_user.password}@")}/${var.app_database_name}"
+  content_type           = "text/plain"
 
   depends_on = [
     mongodbatlas_advanced_cluster.atlas_cluster,
