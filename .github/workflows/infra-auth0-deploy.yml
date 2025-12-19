@@ -1,0 +1,30 @@
+name: Auth0 Infrastructure Deployment
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'infra/auth0/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'infra/auth0/**'
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  deploy:
+    name: Deploy Auth0
+    uses: ./.github/workflows/infra-template.yml
+    secrets: inherit
+    with:
+      componentName: "auth0"
+      environments: |
+        [
+          { "environment": "Development", "region": "westeurope" },
+          { "environment": "QA", "region": "westeurope" }
+        ]
