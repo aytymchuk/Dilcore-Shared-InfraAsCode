@@ -64,3 +64,15 @@ variable "api_identifier" {
   type        = string
   default     = "" # If empty, will be generated based on env_name
 }
+
+variable "region" {
+  description = "The region (e.g. us-east-1). Passed by common CI/CD scripts but unused in this module."
+  type        = string
+  default     = ""
+}
+
+variable "componentName" {
+  description = "The component name. Passed by common CI/CD scripts but unused in this module."
+  type        = string
+  default     = ""
+}
