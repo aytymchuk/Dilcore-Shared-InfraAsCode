@@ -1,9 +1,3 @@
-# Data source to get the App Configuration store
-data "azurerm_app_configuration" "main" {
-  name                = element(split("/", var.app_config_id), length(split("/", var.app_config_id)) - 1)
-  resource_group_name = var.app_config_resource_group
-}
-
 # Read the environment-specific configuration files
 locals {
   env_lower = lower(var.env_name)
@@ -50,7 +44,7 @@ locals {
 resource "azurerm_app_configuration_key" "config" {
   for_each = local.regular_configs
 
-  configuration_store_id = data.azurerm_app_configuration.main.id
+  configuration_store_id = var.app_config_id
   key                    = each.key
   label                  = var.env_name
   value                  = each.value
@@ -60,7 +54,7 @@ resource "azurerm_app_configuration_key" "config" {
 resource "azurerm_app_configuration_feature" "feature" {
   for_each = local.feature_flags
 
-  configuration_store_id = data.azurerm_app_configuration.main.id
+  configuration_store_id = var.app_config_id
   name                   = each.key
   label                  = var.env_name
   enabled                = lower(each.value) == "true"

@@ -30,9 +30,3 @@ variable "app_config_id" {
   type        = string
   default     = "$(SHARED_APP_CONFIGURATION_ID)"
 }
-
-variable "app_config_resource_group" {
-  description = "The resource group name of the Azure App Configuration store."
-  type        = string
-  default     = "$(SHARED_RESOURCEGROUPNAME)"
-}
