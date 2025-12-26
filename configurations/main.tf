@@ -26,7 +26,10 @@ locals {
   f5_s = flatten([for k1, v1 in local.merged_settings : [for k2, v2 in v1 : [for k3, v3 in v2 : [for k4, v4 in v3 : [for k5, v5 in v4 : {key="${k1}:${k2}:${k3}:${k4}:${k5}", val=v5} if !can(tomap(v5)) && !can(toobject(v5))] if can(tomap(v4)) || can(toobject(v4))] if can(tomap(v3)) || can(toobject(v3))] if can(tomap(v2)) || can(toobject(v2))] if can(tomap(v1)) || can(toobject(v1))])
 
   regular_configs_list = concat(local.f1_s, local.f2_s, local.f3_s, local.f4_s, local.f5_s)
-  regular_configs      = { for i in local.regular_configs_list : i.key => i.val != null ? tostring(i.val) : "" }
+  regular_configs = {
+    for i in local.regular_configs_list :
+    i.key => i.val == null ? "" : (can(tostring(i.val)) ? tostring(i.val) : jsonencode(i.val))
+  }
 
   # Process Feature Flags
   flags_config = local.has_flags ? jsondecode(file("${local.config_dir}/${local.flags_file}")) : {}
@@ -37,7 +40,10 @@ locals {
   f3_f = flatten([for k1, v1 in local.flags_config : [for k2, v2 in v1 : [for k3, v3 in v2 : {key="${k1}:${k2}:${k3}", val=v3} if !can(tomap(v3)) && !can(toobject(v3))] if can(tomap(v2)) || can(toobject(v2))] if can(tomap(v1)) || can(toobject(v1))])
 
   feature_flags_list = concat(local.f1_f, local.f2_f, local.f3_f)
-  feature_flags      = { for i in local.feature_flags_list : i.key => i.val != null ? tostring(i.val) : "" }
+  feature_flags = {
+    for i in local.feature_flags_list :
+    i.key => i.val == null ? "" : (can(tostring(i.val)) ? tostring(i.val) : jsonencode(i.val))
+  }
 }
 
 # Deploy regular configuration keys
