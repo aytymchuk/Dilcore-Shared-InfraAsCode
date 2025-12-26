@@ -8,8 +8,8 @@ data "azurerm_app_configuration" "main" {
 locals {
   env_lower = lower(var.env_name)
   
-  # Configuration files directory (resolves to ../component/environments/env)
-  config_dir = "${path.module}/../${var.componentName}/environments/${local.env_lower}"
+  # Configuration files directory (resolves to ./component/environments/env)
+  config_dir = "${path.module}/${var.componentName}/environments/${local.env_lower}"
   
   # Distinguish between regular settings and flags
   all_json_files  = fileset(local.config_dir, "*.json")

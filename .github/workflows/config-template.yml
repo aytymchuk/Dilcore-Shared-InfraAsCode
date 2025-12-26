@@ -48,7 +48,7 @@ jobs:
         uses: hashicorp/setup-terraform@v3
 
       - name: 🚀 Terraform Init
-        working-directory: ./configurations/tf
+        working-directory: ./configurations
         run: |
           terraform init \
             -backend-config="resource_group_name=${{ secrets.TF_BACKEND_RESOURCE_GROUP }}" \
@@ -114,12 +114,12 @@ jobs:
           done
 
       - name: 🔍 Terraform Validate
-        working-directory: ./configurations/tf
+        working-directory: ./configurations
         run: terraform validate
 
       - name: 📋 Terraform Plan
         id: plan
-        working-directory: ./configurations/tf
+        working-directory: ./configurations
         run: |
           terraform plan \
             -var "env_name=${{ matrix.environment }}" \
@@ -129,6 +129,6 @@ jobs:
 
       - name: 🚢 Terraform Apply
         if: github.event_name != 'pull_request'
-        working-directory: ./configurations/tf
+        working-directory: ./configurations
         run: |
           terraform apply -auto-approve tfplan
