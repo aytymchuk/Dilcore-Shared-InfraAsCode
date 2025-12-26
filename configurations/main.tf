@@ -35,9 +35,10 @@ locals {
   flags_config = local.has_flags ? jsondecode(file("${local.config_dir}/${local.flags_file}")) : {}
   
   # Flattening Flags (supports both wrapped and direct structure, 3 levels deep usually enough for flags)
+  # Using "_" instead of ":" because Feature Flag names in Azure do not support colons.
   f1_f = [for k1, v1 in local.flags_config : {key=k1, val=v1} if !can(tomap(v1)) && !can(toobject(v1))]
-  f2_f = flatten([for k1, v1 in local.flags_config : [for k2, v2 in v1 : {key="${k1}:${k2}", val=v2} if !can(tomap(v2)) && !can(toobject(v2))] if can(tomap(v1)) || can(toobject(v1))])
-  f3_f = flatten([for k1, v1 in local.flags_config : [for k2, v2 in v1 : [for k3, v3 in v2 : {key="${k1}:${k2}:${k3}", val=v3} if !can(tomap(v3)) && !can(toobject(v3))] if can(tomap(v2)) || can(toobject(v2))] if can(tomap(v1)) || can(toobject(v1))])
+  f2_f = flatten([for k1, v1 in local.flags_config : [for k2, v2 in v1 : {key="${k1}_${k2}", val=v2} if !can(tomap(v2)) && !can(toobject(v2))] if can(tomap(v1)) || can(toobject(v1))])
+  f3_f = flatten([for k1, v1 in local.flags_config : [for k2, v2 in v1 : [for k3, v3 in v2 : {key="${k1}_${k2}_${k3}", val=v3} if !can(tomap(v3)) && !can(toobject(v3))] if can(tomap(v2)) || can(toobject(v2))] if can(tomap(v1)) || can(toobject(v1))])
 
   feature_flags_list = concat(local.f1_f, local.f2_f, local.f3_f)
   feature_flags = {
