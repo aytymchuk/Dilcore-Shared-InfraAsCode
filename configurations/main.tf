@@ -18,25 +18,25 @@ locals {
   }
   merged_settings = merge(values(local.settings_configs)...)
 
-  # Flattening Regular Settings (5 levels)
-  f1_s = flatten([for k1, v1 in local.merged_settings : [!can(tomap(v1)) && !can(toobject(v1)) ? [{key=k1, val=v1}] : []]])
-  f2_s = flatten([for k1, v1 in local.merged_settings : [can(tomap(v1)) || can(toobject(v1)) ? [for k2, v2 in v1 : !can(tomap(v2)) && !can(toobject(v2)) ? {key="${k1}:${k2}", val=v2} : null] : []]])
-  f3_s = flatten([for k1, v1 in local.merged_settings : [can(tomap(v1)) || can(toobject(v1)) ? [for k2, v2 in v1 : can(tomap(v2)) || can(toobject(v2)) ? [for k3, v3 in v2 : !can(tomap(v3)) && !can(toobject(v3)) ? {key="${k1}:${k2}:${k3}", val=v3} : null] : []] : []]])
-  f4_s = flatten([for k1, v1 in local.merged_settings : [can(tomap(v1)) || can(toobject(v1)) ? [for k2, v2 in v1 : can(tomap(v2)) || can(toobject(v2)) ? [for k3, v3 in v2 : can(tomap(v3)) || can(toobject(v3)) ? [for k4, v4 in v3 : !can(tomap(v4)) && !can(toobject(v4)) ? {key="${k1}:${k2}:${k3}:${k4}", val=v4} : null] : []] : []] : []]])
-  f5_s = flatten([for k1, v1 in local.merged_settings : [can(tomap(v1)) || can(toobject(v1)) ? [for k2, v2 in v1 : can(tomap(v2)) || can(toobject(v2)) ? [for k3, v3 in v2 : can(tomap(v3)) || can(toobject(v3)) ? [for k4, v4 in v3 : can(tomap(v4)) || can(toobject(v4)) ? [for k5, v5 in v4 : {key="${k1}:${k2}:${k3}:${k4}:${k5}", val=v5}] : []] : []] : []] : []]])
+  # Flattening Regular Settings (5 levels) using cleaner 'for...if' approach to avoid type consistency errors
+  f1_s = [for k1, v1 in local.merged_settings : {key=k1, val=v1} if !can(tomap(v1)) && !can(toobject(v1))]
+  f2_s = flatten([for k1, v1 in local.merged_settings : [for k2, v2 in v1 : {key="${k1}:${k2}", val=v2} if !can(tomap(v2)) && !can(toobject(v2))] if can(tomap(v1)) || can(toobject(v1))])
+  f3_s = flatten([for k1, v1 in local.merged_settings : [for k2, v2 in v1 : [for k3, v3 in v2 : {key="${k1}:${k2}:${k3}", val=v3} if !can(tomap(v3)) && !can(toobject(v3))] if can(tomap(v2)) || can(toobject(v2))] if can(tomap(v1)) || can(toobject(v1))])
+  f4_s = flatten([for k1, v1 in local.merged_settings : [for k2, v2 in v1 : [for k3, v3 in v2 : [for k4, v4 in v3 : {key="${k1}:${k2}:${k3}:${k4}", val=v4} if !can(tomap(v4)) && !can(toobject(v4))] if can(tomap(v3)) || can(toobject(v3))] if can(tomap(v2)) || can(toobject(v2))] if can(tomap(v1)) || can(toobject(v1))])
+  f5_s = flatten([for k1, v1 in local.merged_settings : [for k2, v2 in v1 : [for k3, v3 in v2 : [for k4, v4 in v3 : [for k5, v5 in v4 : {key="${k1}:${k2}:${k3}:${k4}:${k5}", val=v5} if !can(tomap(v5)) && !can(toobject(v5))] if can(tomap(v4)) || can(toobject(v4))] if can(tomap(v3)) || can(toobject(v3))] if can(tomap(v2)) || can(toobject(v2))] if can(tomap(v1)) || can(toobject(v1))])
 
-  regular_configs_list = concat(local.f1_s, compact(local.f2_s), compact(local.f3_s), compact(local.f4_s), compact(local.f5_s))
+  regular_configs_list = concat(local.f1_s, local.f2_s, local.f3_s, local.f4_s, local.f5_s)
   regular_configs      = { for i in local.regular_configs_list : i.key => i.val != null ? tostring(i.val) : "" }
 
   # Process Feature Flags
   flags_config = local.has_flags ? jsondecode(file("${local.config_dir}/${local.flags_file}")) : {}
   
   # Flattening Flags (supports both wrapped and direct structure, 3 levels deep usually enough for flags)
-  f1_f = flatten([for k1, v1 in local.flags_config : [!can(tomap(v1)) && !can(toobject(v1)) ? [{key=k1, val=v1}] : []]])
-  f2_f = flatten([for k1, v1 in local.flags_config : [can(tomap(v1)) || can(toobject(v1)) ? [for k2, v2 in v1 : !can(tomap(v2)) && !can(toobject(v2)) ? {key="${k1}:${k2}", val=v2} : null] : []]])
-  f3_f = flatten([for k1, v1 in local.flags_config : [can(tomap(v1)) || can(toobject(v1)) ? [for k2, v2 in v1 : can(tomap(v2)) || can(toobject(v2)) ? [for k3, v3 in v2 : !can(tomap(v3)) && !can(toobject(v3)) ? {key="${k1}:${k2}:${k3}", val=v3} : null] : []] : []]])
+  f1_f = [for k1, v1 in local.flags_config : {key=k1, val=v1} if !can(tomap(v1)) && !can(toobject(v1))]
+  f2_f = flatten([for k1, v1 in local.flags_config : [for k2, v2 in v1 : {key="${k1}:${k2}", val=v2} if !can(tomap(v2)) && !can(toobject(v2))] if can(tomap(v1)) || can(toobject(v1))])
+  f3_f = flatten([for k1, v1 in local.flags_config : [for k2, v2 in v1 : [for k3, v3 in v2 : {key="${k1}:${k2}:${k3}", val=v3} if !can(tomap(v3)) && !can(toobject(v3))] if can(tomap(v2)) || can(toobject(v2))] if can(tomap(v1)) || can(toobject(v1))])
 
-  feature_flags_list = concat(local.f1_f, compact(local.f2_f), compact(local.f3_f))
+  feature_flags_list = concat(local.f1_f, local.f2_f, local.f3_f)
   feature_flags      = { for i in local.feature_flags_list : i.key => i.val != null ? tostring(i.val) : "" }
 }
 
