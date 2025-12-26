@@ -117,14 +117,37 @@ locals {
     for item in local.all_flattened :
     item.key => item.value
   }
+
+  # Separate regular configs and feature flags
+  # Feature flags are identified by containing "FeatureManagement" in the key
+  regular_configs = {
+    for k, v in local.flattened_configs : k => v
+    if !can(regex("FeatureManagement", k))
+  }
+
+  feature_flags = {
+    for k, v in local.flattened_configs : k => v
+    if can(regex("FeatureManagement", k))
+  }
 }
 
-# Deploy configuration keys to Azure App Configuration
+# Deploy regular configuration keys to Azure App Configuration
 resource "azurerm_app_configuration_key" "config" {
-  for_each = local.flattened_configs
+  for_each = local.regular_configs
 
   configuration_store_id = data.azurerm_app_configuration.main.id
   key                    = each.key
   label                  = var.env_name
   value                  = each.value
+}
+
+# Deploy feature flags to Azure App Configuration
+resource "azurerm_app_configuration_feature" "feature" {
+  for_each = local.feature_flags
+
+  configuration_store_id = data.azurerm_app_configuration.main.id
+  name                   = each.key
+  label                  = var.env_name
+  enabled                = lower(each.value) == "true"
+  description            = "Feature flag managed by Terraform: ${each.key}"
 }
