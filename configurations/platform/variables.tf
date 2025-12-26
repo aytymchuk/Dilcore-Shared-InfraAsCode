@@ -29,3 +29,8 @@ variable "app_config_name" {
   description = "The name of the Azure App Configuration store."
   type        = string
 }
+
+variable "app_config_resource_group" {
+  description = "The resource group name of the Azure App Configuration store."
+  type        = string
+}

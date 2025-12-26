@@ -125,6 +125,7 @@ jobs:
             -var "region=${{ matrix.region }}" \
             -var "componentName=${{ inputs.componentName }}" \
             -var "app_config_name=${{ secrets.AZURE_APP_CONFIG_NAME }}" \
+            -var "app_config_resource_group=${{ secrets.AZURE_APP_CONFIG_RESOURCE_GROUP }}" \
             -out=tfplan
 
       - name: 🚢 Terraform Apply

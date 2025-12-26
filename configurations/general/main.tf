@@ -1,7 +1,7 @@
 # Data source to get the App Configuration store
 data "azurerm_app_configuration" "main" {
   name                = var.app_config_name
-  resource_group_name = data.azurerm_app_configuration.main.resource_group_name
+  resource_group_name = var.app_config_resource_group
 }
 
 # Read the environment-specific configuration files
