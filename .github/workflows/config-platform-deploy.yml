@@ -1,0 +1,30 @@
+name: Platform Configuration Deployment
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'configurations/platform/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'configurations/platform/**'
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  deploy:
+    name: Deploy Platform Configurations
+    uses: ./.github/workflows/config-template.yml
+    secrets: inherit
+    with:
+      componentName: "platform"
+      environments: |
+        [
+          { "environment": "Development", "region": "westeurope" },
+          { "environment": "QA", "region": "westeurope" }
+        ]

@@ -1,0 +1,30 @@
+name: General Configuration Deployment
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'configurations/general/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'configurations/general/**'
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  deploy:
+    name: Deploy General Configurations
+    uses: ./.github/workflows/config-template.yml
+    secrets: inherit
+    with:
+      componentName: "general"
+      environments: |
+        [
+          { "environment": "Development", "region": "westeurope" },
+          { "environment": "QA", "region": "westeurope" }
+        ]
