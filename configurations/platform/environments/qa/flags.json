@@ -2,6 +2,8 @@
     "Dilcore.Platform.WebApi": {
         "NewDashboard": false,
         "BetaFeatures": false,
-        "AdvancedAnalytics": false
+        "AdvancedAnalytics": false,
+        "EnableNewFeature": false,
+        "EnableDebugMode": false
     }
 }

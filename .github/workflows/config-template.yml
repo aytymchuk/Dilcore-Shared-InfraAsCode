@@ -122,11 +122,14 @@ jobs:
                 if [ -n "$VALUE" ]; then
                   echo "::add-mask::$VALUE"
                   echo "      ✅ Replaced $var_placeholder with value from App Config (Key: $VAR_KEY)"
-                  # Escape special characters in value for sed
-                  ESCAPED_VALUE=$(printf '%s\n' "$VALUE" | sed -e 's/[\/&]/\\&/g')
+                  # Escape search pattern (var_placeholder has $(...))
+                  ESCAPED_SEARCH=$(printf '%s' "$var_placeholder" | sed 's/[][\\/&.*+?^${}|()]/\\&/g')
+
+                  # Escape replacement value
+                  ESCAPED_VALUE=$(printf '%s' "$VALUE" | sed 's/\\/\\\\/g; s/[\/&]/\\&/g' | sed -z 's/\n/\\n/g')
                   
                   # Replace in file (inplace)
-                  sed -i "s/$var_placeholder/$ESCAPED_VALUE/g" "$file"
+                  sed -i "s/$ESCAPED_SEARCH/$ESCAPED_VALUE/g" "$file"
                 else
                   echo "      ⚠️  Value not found in App Config for $VAR_KEY (label: $LABEL). Skipping."
                 fi
