@@ -129,7 +129,7 @@ jobs:
                   ESCAPED_VALUE=$(printf '%s' "$VALUE" | sed 's/\\/\\\\/g; s/[\/&]/\\&/g' | sed -z 's/\n/\\n/g')
                   
                   # Replace in file (inplace)
-                  sed -i "s/$ESCAPED_SEARCH/$ESCAPED_VALUE/g" "$file"
+                  sed -i -E "s/$ESCAPED_SEARCH/$ESCAPED_VALUE/g" "$file"
                 else
                   echo "      ⚠️  Value not found in App Config for $VAR_KEY (label: $LABEL). Skipping."
                 fi
