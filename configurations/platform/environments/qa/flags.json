@@ -1,0 +1,9 @@
+{
+    "Dilcore.Platform.WebApi": {
+        "FeatureManagement": {
+            "NewDashboard": false,
+            "BetaFeatures": false,
+            "AdvancedAnalytics": false
+        }
+    }
+}
