@@ -48,7 +48,7 @@ jobs:
         uses: hashicorp/setup-terraform@v3
 
       - name: 🚀 Terraform Init
-        working-directory: ./configurations/${{ inputs.componentName }}
+        working-directory: ./configurations/tf
         run: |
           terraform init \
             -backend-config="resource_group_name=${{ secrets.TF_BACKEND_RESOURCE_GROUP }}" \
@@ -59,7 +59,7 @@ jobs:
             -backend-config="tenant_id=${{ secrets.TF_BACKEND_TENANT_ID }}"
 
       - name: 🔄 Replace Variables from App Config
-        working-directory: ./configurations/${{ inputs.componentName }}
+        working-directory: ./configurations/${{ inputs.componentName }}/environments
         env:
           APP_CONFIG_NAME: ${{ secrets.AZURE_APP_CONFIG_NAME }}
           LABEL: ${{ matrix.environment }}
@@ -72,7 +72,8 @@ jobs:
 
           echo "🔍 Scanning for variables to replace in .tf, .tfvars, and .json files..."
           
-          # Find configuration files
+          # Find configuration files in current environment
+          # We look into the current component's environment folder
           FILES=$(find . -maxdepth 2 -type f \( -name "*.tf" -o -name "*.tfvars" -o -name "*.json" \))
           
           for file in $FILES; do
@@ -113,12 +114,12 @@ jobs:
           done
 
       - name: 🔍 Terraform Validate
-        working-directory: ./configurations/${{ inputs.componentName }}
+        working-directory: ./configurations/tf
         run: terraform validate
 
       - name: 📋 Terraform Plan
         id: plan
-        working-directory: ./configurations/${{ inputs.componentName }}
+        working-directory: ./configurations/tf
         run: |
           terraform plan \
             -var "env_name=${{ matrix.environment }}" \
@@ -128,6 +129,6 @@ jobs:
 
       - name: 🚢 Terraform Apply
         if: github.event_name != 'pull_request'
-        working-directory: ./configurations/${{ inputs.componentName }}
+        working-directory: ./configurations/tf
         run: |
           terraform apply -auto-approve tfplan
