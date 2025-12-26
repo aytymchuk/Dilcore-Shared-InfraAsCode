@@ -70,10 +70,10 @@ jobs:
             exit 0
           fi
 
-          echo "🔍 Scanning for variables to replace in .json files..."
+          echo "🔍 Scanning for variables to replace in .tf, .tfvars, and .json files..."
           
-          # Find appsettings.json files
-          FILES=$(find ./environments -maxdepth 2 -type f -name "*.json")
+          # Find configuration files
+          FILES=$(find . -maxdepth 2 -type f \( -name "*.tf" -o -name "*.tfvars" -o -name "*.json" \))
           
           for file in $FILES; do
             # Extract placeholders like $(VAR_NAME)
@@ -124,8 +124,6 @@ jobs:
             -var "env_name=${{ matrix.environment }}" \
             -var "region=${{ matrix.region }}" \
             -var "componentName=${{ inputs.componentName }}" \
-            -var "app_config_name=${{ secrets.AZURE_APP_CONFIG_NAME }}" \
-            -var "app_config_resource_group=${{ secrets.AZURE_APP_CONFIG_RESOURCE_GROUP }}" \
             -out=tfplan
 
       - name: 🚢 Terraform Apply

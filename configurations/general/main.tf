@@ -1,6 +1,6 @@
 # Data source to get the App Configuration store
 data "azurerm_app_configuration" "main" {
-  name                = var.app_config_name
+  name                = element(split("/", var.app_config_id), length(split("/", var.app_config_id)) - 1)
   resource_group_name = var.app_config_resource_group
 }
 
