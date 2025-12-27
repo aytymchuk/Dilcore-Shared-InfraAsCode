@@ -144,22 +144,3 @@ resource "null_resource" "cluster_ready" {
     EOT
   }
 }
-
-# Add MongoDB connection string to Azure App Configuration
-resource "azurerm_app_configuration_key" "mongodb_connection_string" {
-  configuration_store_id = var.app_config_id
-  key                    = "General:MongoDbSettings:ConnectionString"
-  value                  = "${replace(mongodbatlas_advanced_cluster.atlas_cluster.connection_strings.standard_srv, "mongodb+srv://", "mongodb+srv://${mongodbatlas_database_user.atlas_db_user.username}:${mongodbatlas_database_user.atlas_db_user.password}@")}/${var.app_database_name}"
-  content_type           = "text/plain"
-
-  depends_on = [
-    mongodbatlas_advanced_cluster.atlas_cluster,
-    null_resource.cluster_ready
-  ]
-
-  tags = {
-    Environment = var.env_name
-    ManagedBy   = "Terraform"
-    Service     = "MongoDB"
-  }
-}
