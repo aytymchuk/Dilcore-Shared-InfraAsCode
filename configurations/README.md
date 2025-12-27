@@ -4,7 +4,7 @@ This folder contains the centralized Configuration As Code system used to deploy
 
 ## 🏛️ Architecture
 
-The system uses a unified Terraform module located at the root of this folder to process configurations for all components (e.g., `platform`, `general`).
+The system uses a unified Terraform module located at the root of this folder to process configurations for all components (e.g., `platform`, `shared`).
 
 ```text
 configurations/
@@ -13,7 +13,7 @@ configurations/
 ├── providers.tf                  # Azure Provider config
 ├── backend.tf                    # Remote State storage
 │
-├── general/                      # Shared global configurations
+├── shared/                       # Shared global configurations
 │   └── environments/
 │       └── development/
 │           └── appsettings.json  # Regular settings
