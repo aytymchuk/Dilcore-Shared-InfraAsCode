@@ -70,6 +70,15 @@ jobs:
             exit 0
           fi
 
+          # Verify Azure CLI can access App Configuration
+          echo "🔍 Verifying access to Azure App Configuration: $APP_CONFIG_NAME"
+          if ! az appconfig show --name "$APP_CONFIG_NAME" &>/dev/null; then
+            echo "❌ Failed to access Azure App Configuration: $APP_CONFIG_NAME"
+            echo "This may be due to authentication failure or connection issues."
+            exit 1
+          fi
+          echo "✅ Successfully verified access to Azure App Configuration"
+
           echo "🔍 Scanning for variables to replace in .tf, .tfvars, and .json files..."
           
           # Find files
@@ -90,16 +99,17 @@ jobs:
                 # Remove $( and )
                 VAR_KEY=${var_placeholder:2:-1}
                 
-                # Fetch value from App Config
-                # echo "      ⬇️ Fetching value for key '$VAR_KEY' with label '$LABEL'..." # Reduced verbosity
+                # Fetch value from App Config with proper error handling
+                ERROR_OUTPUT=$(mktemp)
                 VALUE=$(az appconfig kv show \
                   --name "$APP_CONFIG_NAME" \
                   --key "$VAR_KEY" \
                   --label "$LABEL" \
                   --query value \
-                  -o tsv 2>/dev/null || echo "")
+                  -o tsv 2>"$ERROR_OUTPUT")
+                EXIT_CODE=$?
                 
-                if [ -n "$VALUE" ]; then
+                if [ $EXIT_CODE -eq 0 ] && [ -n "$VALUE" ]; then
                   echo "::add-mask::$VALUE"
                   echo "      ✅ Replaced $var_placeholder with value from App Config (Key: $VAR_KEY)"
                   # Escape special characters in value for sed
@@ -107,9 +117,19 @@ jobs:
                   
                   # Replace in file (inplace)
                   sed -i "s/$var_placeholder/$ESCAPED_VALUE/g" "$file"
-                else
+                elif grep -qi "not found\|does not exist" "$ERROR_OUTPUT"; then
+                  # Key not found - this is expected for some variables
                   echo "      ⚠️  Value not found in App Config for $VAR_KEY (label: $LABEL). Skipping."
+                else
+                  # Unexpected error - authentication, connection, or access issues
+                  echo "      ❌ Azure error while fetching $VAR_KEY:"
+                  cat "$ERROR_OUTPUT"
+                  rm -f "$ERROR_OUTPUT"
+                  echo "🚨 Critical Azure error detected. Failing pipeline."
+                  exit 1
                 fi
+                
+                rm -f "$ERROR_OUTPUT"
               done
             fi
           done
