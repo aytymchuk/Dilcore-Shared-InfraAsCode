@@ -58,7 +58,7 @@ jobs:
             -backend-config="subscription_id=${{ secrets.TF_BACKEND_SUBSCRIPTION_ID }}" \
             -backend-config="tenant_id=${{ secrets.TF_BACKEND_TENANT_ID }}"
 
-      - name: � Replace Variables from App Config
+      - name: 🔄 Replace Variables from App Config
         working-directory: ./infra/${{ inputs.componentName }}
         env:
           APP_CONFIG_NAME: ${{ secrets.AZURE_APP_CONFIG_NAME }}
