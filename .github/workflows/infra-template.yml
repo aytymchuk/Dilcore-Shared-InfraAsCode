@@ -95,6 +95,14 @@ jobs:
           # Combine both sets of files
           FILES="$GLOBAL_FILES $ENV_FILES"
           
+          # Display selected files
+          echo ""
+          echo "📋 Selected files for processing:"
+          for file in $FILES; do
+            [ -f "$file" ] && echo "   ✓ $file"
+          done
+          echo ""
+          
           for file in $FILES; do
             # Skip if file doesn't exist (in case find returned empty)
             [ -f "$file" ] || continue
