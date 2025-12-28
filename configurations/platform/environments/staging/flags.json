@@ -1,5 +1,5 @@
 {
-    "Dilcore.Platform.WebApi": {
+    "WebApi": {
         "NewDashboard": true,
         "BetaFeatures": true,
         "AdvancedAnalytics": false,
