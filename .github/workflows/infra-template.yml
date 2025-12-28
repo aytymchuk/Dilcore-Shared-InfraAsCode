@@ -81,8 +81,8 @@ jobs:
 
           echo "🔍 Scanning for variables to replace in .tf, .tfvars, and .json files..."
           
-          # Find files
-          FILES=$(find . -maxdepth 2 -type f \( -name "*.tf" -o -name "*.tfvars" -o -name "*.json" \))
+          # Find files (maxdepth 3 to include environments/*/terraform.tfvars)
+          FILES=$(find . -maxdepth 3 -type f \( -name "*.tf" -o -name "*.tfvars" -o -name "*.json" \))
           
           for file in $FILES; do
             # Extract placeholders like $(VAR_NAME)
