@@ -156,7 +156,7 @@ jobs:
             fi
           done
 
-      - name: �� Terraform Validate
+      - name: ✅ Terraform Validate
         working-directory: ./infra/${{ inputs.componentName }}
         run: terraform validate
 
