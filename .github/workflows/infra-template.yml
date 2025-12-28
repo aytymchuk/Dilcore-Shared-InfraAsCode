@@ -81,10 +81,24 @@ jobs:
 
           echo "🔍 Scanning for variables to replace in .tf, .tfvars, and .json files..."
           
-          # Find files (maxdepth 3 to include environments/*/terraform.tfvars)
-          FILES=$(find . -maxdepth 3 -type f \( -name "*.tf" -o -name "*.tfvars" -o -name "*.json" \))
+          # Convert environment to lowercase for path matching
+          ENV_LOWER=$(echo "$LABEL" | tr '[:upper:]' '[:lower:]')
+          
+          # Find global .tf files and environment-specific files
+          # Global files: All .tf files in the root (maxdepth 1)
+          # Environment files: Only .tfvars and .json in environments/$ENV_LOWER/
+          echo "📂 Processing files for environment: $LABEL (path: environments/$ENV_LOWER)"
+          
+          GLOBAL_FILES=$(find . -maxdepth 1 -type f -name "*.tf")
+          ENV_FILES=$(find ./environments/$ENV_LOWER -type f \( -name "*.tfvars" -o -name "*.json" \) 2>/dev/null || echo "")
+          
+          # Combine both sets of files
+          FILES="$GLOBAL_FILES $ENV_FILES"
           
           for file in $FILES; do
+            # Skip if file doesn't exist (in case find returned empty)
+            [ -f "$file" ] || continue
+            
             # Extract placeholders like $(VAR_NAME)
             # Use grep to find matches, sort -u to get unique list
             VARS=$(grep -oE '\$\([A-Z0-9_]+\)' "$file" | sort -u || true)
