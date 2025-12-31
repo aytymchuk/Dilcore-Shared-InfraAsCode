@@ -146,7 +146,7 @@ Manages client secrets for both applications using the `client_secret_post` auth
 
 Configuration is managed through `terraform.tfvars` files in the `environments/` directory.
 
-**Example:** [environments/development/terraform.tfvars](file:///Users/arsen/Projects/Dilcore-InfraAsCode/infra/auth0/environments/development/terraform.tfvars)
+**Example:** [environments/development/terraform.tfvars](environments/development/terraform.tfvars)
 
 ```hcl
 env_name                    = "development"
@@ -199,7 +199,7 @@ These placeholders are replaced during configuration deployment with actual valu
 
 ## Deployment
 
-Deployment is automated through GitHub Actions using the [infra-auth0-deploy.yml](file:///Users/arsen/Projects/Dilcore-InfraAsCode/.github/workflows/infra-auth0-deploy.yml) workflow.
+Deployment is automated through GitHub Actions using the [infra-auth0-deploy.yml](../../.github/workflows/infra-auth0-deploy.yml) workflow.
 
 **Workflow Triggers:**
 - Manual dispatch (`workflow_dispatch`)
@@ -246,6 +246,6 @@ terraform apply -var-file=environments/development/terraform.tfvars
 
 ## Related Documentation
 
-- [Main Infrastructure Overview](file:///Users/arsen/Projects/Dilcore-InfraAsCode/README.md)
-- [Configuration System](file:///Users/arsen/Projects/Dilcore-InfraAsCode/configurations/README.md)
-- [Platform Infrastructure](file:///Users/arsen/Projects/Dilcore-InfraAsCode/infra/platform/README.md)
+- [Main Infrastructure Overview](../../README.md)
+- [Configuration System](../../configurations/README.md)
+- [Platform Infrastructure](../platform/README.md)
