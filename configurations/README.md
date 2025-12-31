@@ -140,7 +140,7 @@ The configuration system organizes settings into two main components:
 
 **Path:** `configurations/platform/`
 
-**Purpose:** Platform API specific configurations
+**Purpose:** Platform API-specific configurations
 
 **Typical Settings:**
 - MongoDB connection strings
