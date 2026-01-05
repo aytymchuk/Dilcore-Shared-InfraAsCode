@@ -29,40 +29,40 @@ variable "componentName" {
 # Local values for region mapping
 locals {
   region_mapping = {
-    "westeurope"    = "West Europe"
-    "eastus"        = "East US"
-    "eastus2"       = "East US 2"
-    "westus"        = "West US"
-    "westus2"       = "West US 2"
-    "centralus"     = "Central US"
-    "northeurope"   = "North Europe"
-    "southeastasia" = "Southeast Asia"
-    "eastasia"      = "East Asia"
-    "australiaeast" = "Australia East"
-    "uksouth"       = "UK South"
-    "ukwest"        = "UK West"
-    "canadacentral" = "Canada Central"
-    "canadaeast"    = "Canada East"
-    "japaneast"     = "Japan East"
-    "japanwest"     = "Japan West"
-    "koreacentral"  = "Korea Central"
-    "koreasouth"    = "Korea South"
-    "brazilsouth"   = "Brazil South"
-    "southafricanorth" = "South Africa North"
-    "uaenorth"      = "UAE North"
-    "switzerlandnorth" = "Switzerland North"
+    "westeurope"         = "West Europe"
+    "eastus"             = "East US"
+    "eastus2"            = "East US 2"
+    "westus"             = "West US"
+    "westus2"            = "West US 2"
+    "centralus"          = "Central US"
+    "northeurope"        = "North Europe"
+    "southeastasia"      = "Southeast Asia"
+    "eastasia"           = "East Asia"
+    "australiaeast"      = "Australia East"
+    "uksouth"            = "UK South"
+    "ukwest"             = "UK West"
+    "canadacentral"      = "Canada Central"
+    "canadaeast"         = "Canada East"
+    "japaneast"          = "Japan East"
+    "japanwest"          = "Japan West"
+    "koreacentral"       = "Korea Central"
+    "koreasouth"         = "Korea South"
+    "brazilsouth"        = "Brazil South"
+    "southafricanorth"   = "South Africa North"
+    "uaenorth"           = "UAE North"
+    "switzerlandnorth"   = "Switzerland North"
     "germanywestcentral" = "Germany West Central"
-    "norwayeast"    = "Norway East"
-    "francecentral" = "France Central"
-    "southindia"    = "South India"
-    "centralindia"  = "Central India"
-    "westindia"     = "West India"
+    "norwayeast"         = "Norway East"
+    "francecentral"      = "France Central"
+    "southindia"         = "South India"
+    "centralindia"       = "Central India"
+    "westindia"          = "West India"
   }
-  
+
   resource_group_location = lookup(local.region_mapping, var.region, var.region)
 
   env_short = substr(lower(var.env_name), 0, 3)
-  
+
   container_app_name = lower(replace("${local.env_short}-${var.api_name}", "/[^a-z0-9-]/", ""))
 
   default_tags = {
@@ -83,7 +83,7 @@ variable "tags" {
 variable "api_name" {
   description = "The name of the application."
   type        = string
-  default = "api"
+  default     = "api"
   validation {
     condition     = length(var.api_name) <= 8
     error_message = "The api_name must be at most 8 characters long to ensure storage account name limits."
@@ -93,7 +93,7 @@ variable "api_name" {
 variable "container_app_env_id" {
   description = "The ID of the Container App Environment."
   type        = string
-  default = "$(SHARED_CONTAINER_APP_ENV_ID)"
+  default     = "$(SHARED_CONTAINER_APP_ENV_ID)"
 }
 
 variable "revision_mode" {
@@ -129,7 +129,7 @@ variable "container_memory" {
 variable "app_config_endpoint" {
   description = "The endpoint of the App Configuration."
   type        = string
-  default = "$(SHARED_APP_CONFIGURATION_ENDPOINT)"
+  default     = "$(SHARED_APP_CONFIGURATION_ENDPOINT)"
 }
 
 variable "dotnet_env_name" {
@@ -141,5 +141,34 @@ variable "dotnet_env_name" {
 variable "app_config_id" {
   description = "The ID of the App Configuration store."
   type        = string
-  default = "$(SHARED_APP_CONFIGURATION_ID)"
+  default     = "$(SHARED_APP_CONFIGURATION_ID)"
+}
+variable "sql_admin_login" {
+  description = "The administrator login name for the SQL Server."
+  type        = string
+  default     = "sqladmin"
+}
+
+variable "sql_database_name" {
+  description = "The name of the SQL Database."
+  type        = string
+  default     = "sqldb"
+}
+
+variable "sql_sku_name" {
+  description = "The SKU name for the SQL Database."
+  type        = string
+  default     = "GP_S_Gen5_1"
+}
+
+variable "sql_auto_pause_delay" {
+  description = "Time in minutes after which the database is automatically paused."
+  type        = number
+  default     = 60
+}
+
+variable "sql_min_capacity" {
+  description = "The minimum capacity of the database in vCores."
+  type        = number
+  default     = 0.5
 }
