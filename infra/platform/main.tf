@@ -1,5 +1,4 @@
 # Create a new Azure Resource Group
-# Create a new Azure Resource Group
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "resourceGroup" {
