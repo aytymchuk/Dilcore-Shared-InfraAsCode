@@ -153,21 +153,22 @@ resource "null_resource" "create_sql_user" {
 
   provisioner "local-exec" {
     command = <<EOT
-      # Generate a SQL script
-      echo "CREATE USER [${azurerm_container_app.api.name}] FROM EXTERNAL PROVIDER;" > create_user.sql
-      echo "ALTER ROLE db_datareader ADD MEMBER [${azurerm_container_app.api.name}];" >> create_user.sql
-      echo "ALTER ROLE db_datawriter ADD MEMBER [${azurerm_container_app.api.name}];" >> create_user.sql
+      SCRIPT_FILE=$(mktemp)
+      cat > "$SCRIPT_FILE" <<'SQL'
+IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = '${azurerm_container_app.api.name}')
+BEGIN
+  CREATE USER [${azurerm_container_app.api.name}] FROM EXTERNAL PROVIDER;
+END
+ALTER ROLE db_datareader ADD MEMBER [${azurerm_container_app.api.name}];
+ALTER ROLE db_datawriter ADD MEMBER [${azurerm_container_app.api.name}];
+SQL
 
-      # Execute with sqlcmd
-      # Note: This requires sqlcmd tool and valid Azure AD context.
       echo "Executing SQL script to create user..."
-      sqlcmd -S ${azurerm_mssql_server.sql.fully_qualified_domain_name} -d ${azurerm_mssql_database.sqldb.name} --authentication-method=ActiveDirectoryDefault -i create_user.sql
+      sqlcmd -S ${azurerm_mssql_server.sql.fully_qualified_domain_name} -d ${azurerm_mssql_database.sqldb.name} --authentication-method=ActiveDirectoryDefault -i "$SCRIPT_FILE"
       
-      # Cleanup
-      rm create_user.sql
+      rm -f "$SCRIPT_FILE"
     EOT
 
     interpreter = ["/bin/bash", "-c"]
-    on_failure  = continue
   }
 }
