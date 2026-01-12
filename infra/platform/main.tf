@@ -32,6 +32,10 @@ resource "azurerm_container_app" "api" {
         name  = "ASPNETCORE_ENVIRONMENT"
         value = var.dotnet_env_name
       }
+      env {
+        name  = "ASPNETCORE_HTTP_PORTS"
+        value = "8080"
+      }
     }
 
     #min_replicas = 1
