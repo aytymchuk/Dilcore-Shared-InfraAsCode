@@ -32,6 +32,10 @@ resource "azurerm_container_app" "api" {
         name  = "ASPNETCORE_ENVIRONMENT"
         value = var.dotnet_env_name
       }
+      env {
+        name  = "ASPNETCORE_HTTP_PORTS"
+        value = "8080"
+      }
     }
 
     #min_replicas = 1
@@ -46,6 +50,12 @@ resource "azurerm_container_app" "api" {
       label           = "blue"
       latest_revision = true
     }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      template[0].container[0].image
+    ]
   }
 
   tags = var.tags
@@ -85,7 +95,7 @@ resource "azurerm_storage_account" "grain_storage_account" {
 # Add Storage Blob Data Contributor role assignment for the API
 resource "azurerm_role_assignment" "storage_access" {
   scope                = azurerm_storage_account.grain_storage_account.id
-  role_definition_name = "Storage Blob Data Contributor"
+  role_definition_name = "Storage Table Data Contributor"
   principal_id         = azurerm_container_app.api.identity[0].principal_id
 
   depends_on = [
