@@ -95,7 +95,7 @@ resource "azurerm_storage_account" "grain_storage_account" {
 # Add Storage Blob Data Contributor role assignment for the API
 resource "azurerm_role_assignment" "storage_access" {
   scope                = azurerm_storage_account.grain_storage_account.id
-  role_definition_name = "Storage Blob Data Contributor"
+  role_definition_name = "Storage Table Data Contributor"
   principal_id         = azurerm_container_app.api.identity[0].principal_id
 
   depends_on = [
