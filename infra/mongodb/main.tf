@@ -7,12 +7,11 @@ resource "random_string" "db_username" {
 
 # Generate random password for database user
 resource "random_password" "db_password" {
-  length           = 16
-  special          = true
-  upper            = true
-  lower            = true
-  numeric          = true
-  override_special = "!#$%&*()-_=+[]{}<>:?"
+  length  = 16
+  special = false
+  upper   = true
+  lower   = true
+  numeric = true
 }
 
 locals {
