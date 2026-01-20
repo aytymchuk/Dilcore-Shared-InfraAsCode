@@ -130,12 +130,6 @@ variable "atlas_region_mapping" {
   }
 }
 
-variable "app_database_name" {
-  description = "Name of the application database for the database user"
-  type        = string
-  default     = "dilcore-app-db"
-}
-
 # MongoDB Atlas Cluster Configuration Variables
 variable "instance_size" {
   description = "MongoDB Atlas cluster instance size"
