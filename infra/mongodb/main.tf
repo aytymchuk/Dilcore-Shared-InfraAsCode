@@ -74,8 +74,8 @@ resource "mongodbatlas_database_user" "atlas_db_user" {
   auth_database_name = "admin"
 
   roles {
-    role_name     = "readWrite"
-    database_name = var.app_database_name
+    role_name     = "readWriteAnyDatabase"
+    database_name = "admin"
   }
 
   labels {
