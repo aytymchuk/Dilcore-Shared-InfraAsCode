@@ -1,8 +1,8 @@
 terraform {
   required_providers {
     openrouter = {
-      source  = "standujar/openrouter"
-      version = "~> 0.1.0"
+      source  = "mcmarkj/openrouter"
+      version = "~> 0.0.1"
     }
   }
 }
