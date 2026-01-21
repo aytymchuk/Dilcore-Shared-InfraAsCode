@@ -64,6 +64,8 @@ locals {
   env_short = substr(lower(var.env_name), 0, 3)
 
   container_app_name = lower(replace("${local.env_short}-${var.api_name}", "/[^a-z0-9-]/", ""))
+  ai_core_app_name   = lower(replace("${local.env_short}-ai-core", "/[^a-z0-9-]/", ""))
+  web_app_app_name   = lower(replace("${local.env_short}-web-app", "/[^a-z0-9-]/", ""))
 
   default_tags = {
     CreatedBy   = "Terraform"
@@ -90,6 +92,18 @@ variable "api_name" {
   }
 }
 
+variable "ai_core_name" {
+  description = "The name of the AI Core application."
+  type        = string
+  default     = "ai-core"
+}
+
+variable "web_app_name" {
+  description = "The name of the Web App application."
+  type        = string
+  default     = "web-app"
+}
+
 variable "container_app_env_id" {
   description = "The ID of the Container App Environment."
   type        = string
@@ -114,14 +128,38 @@ variable "image_name" {
   default     = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
 }
 
-variable "container_cpu" {
-  description = "The number of CPU cores for the container."
+variable "api_container_cpu" {
+  description = "The number of CPU cores for the API container."
   type        = number
   default     = 0.5
 }
 
-variable "container_memory" {
-  description = "The amount of memory for the container (e.g., 1Gi, 2Gi)."
+variable "api_container_memory" {
+  description = "The amount of memory for the API container (e.g., 1Gi, 2Gi)."
+  type        = string
+  default     = "1.0Gi"
+}
+
+variable "ai_core_container_cpu" {
+  description = "The number of CPU cores for the AI Core container."
+  type        = number
+  default     = 0.5
+}
+
+variable "ai_core_container_memory" {
+  description = "The amount of memory for the AI Core container (e.g., 1Gi, 2Gi)."
+  type        = string
+  default     = "1.0Gi"
+}
+
+variable "web_app_container_cpu" {
+  description = "The number of CPU cores for the Web App container."
+  type        = number
+  default     = 0.5
+}
+
+variable "web_app_container_memory" {
+  description = "The amount of memory for the Web App container (e.g., 1Gi, 2Gi)."
   type        = string
   default     = "1.0Gi"
 }
