@@ -1,16 +1,29 @@
+# General Settings
 dotnet_env_name = "QA"
 
-
+# Tags
 tags = {
   "CreatedBy"   = "Terraform"
   "Environment" = "QA"
   "Kind"        = "Platform"
 }
 
-container_cpu    = 0.5
-container_memory = "1.0Gi"
-
+# Platform API
 api_name             = "api"
+api_container_cpu    = 0.5
+api_container_memory = "1.0Gi"
+
+# AI Core
+ai_core_name             = "ai-core"
+ai_core_container_cpu    = 0.5
+ai_core_container_memory = "1.0Gi"
+
+# Web App
+web_app_name             = "web-app"
+web_app_container_cpu    = 0.5
+web_app_container_memory = "1.0Gi"
+
+# SQL Database
 sql_database_name    = "sqldb"
 sql_admin_login      = "sqladmin"
 sql_sku_name         = "GP_S_Gen5_1"
