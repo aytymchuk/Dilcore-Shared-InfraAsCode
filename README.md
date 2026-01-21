@@ -8,6 +8,7 @@
 [![Platform Infrastructure Deployment](https://github.com/aytymchuk/Dilcore-Shared-InfraAsCode/actions/workflows/infra-platform-deploy.yml/badge.svg)](https://github.com/aytymchuk/Dilcore-Shared-InfraAsCode/actions/workflows/infra-platform-deploy.yml)
 [![MongoDB Infrastructure Deployment](https://github.com/aytymchuk/Dilcore-Shared-InfraAsCode/actions/workflows/infra-mongodb-deploy.yml/badge.svg)](https://github.com/aytymchuk/Dilcore-Shared-InfraAsCode/actions/workflows/infra-mongodb-deploy.yml)
 [![Auth0 Infrastructure Deployment](https://github.com/aytymchuk/Dilcore-Shared-InfraAsCode/actions/workflows/infra-auth0-deploy.yml/badge.svg)](https://github.com/aytymchuk/Dilcore-Shared-InfraAsCode/actions/workflows/infra-auth0-deploy.yml)
+[![OpenRouter Infrastructure Deployment](https://github.com/aytymchuk/Dilcore-Shared-InfraAsCode/actions/workflows/infra-openrouter-deploy.yml/badge.svg)](https://github.com/aytymchuk/Dilcore-Shared-InfraAsCode/actions/workflows/infra-openrouter-deploy.yml)
 
 **Configuration Deployments:**
 
@@ -24,6 +25,7 @@ The infrastructure is managed using Terraform and is organized into modular comp
 - **[Platform Infrastructure](./infra/platform/)**: This module contains the platform-specific resources, including the main API Container App and Storage Account for Orleans Grains. It has a direct relation to the container app environment provisioned in the shared module.
 - **[MongoDB Infrastructure](./infra/mongodb/)**: This module manages the MongoDB Atlas resources, including the Atlas Project and Cluster. It stores the connection string in the shared App Configuration.
 - **[Auth0 Infrastructure](./infra/auth0/)**: This module manages Auth0 authentication resources, including the API Resource Server and OAuth2 clients for the Web App and API Documentation. Auth0 credentials and configuration are stored in App Configuration for use by the Platform API.
+- **[OpenRouter Infrastructure](./infra/open-router-models/)**: This module manages OpenRouter API keys and credit limits for the AI Core project. It provides secure access to external AI models.
 
 ### Infrastructure Overview
 
@@ -69,12 +71,21 @@ graph TD
         end
     end
 
+    subgraph OpenRouter_Infrastructure["OpenRouter Infrastructure"]
+        style OpenRouter_Infrastructure fill:#e0f7fa,stroke:#00838f,stroke-width:2px
+        subgraph OpenRouter["OpenRouter API"]
+            style OpenRouter fill:#ffffff,stroke:#4dd0e1
+            OpenRouterKey["API Key (AI Core)"]
+        end
+    end
+
     %% Cross-Group Relationships
     ContainerApp -->|Hosted In| CAE
     ContainerApp -->|Reads Settings| AppConfig
     ContainerApp -->|Read/Write| Storage
     ContainerApp -->|Connects To| AtlasCluster
     ContainerApp -->|Validates JWT| Auth0API
+    ContainerApp -->|Uses AI Models| OpenRouterKey
     
     %% Logging & Monitoring
     AppInsights -->|Logs| LAW
@@ -87,6 +98,7 @@ graph TD
     Auth0API -.-|Domain, Audience| AppConfig
     Auth0WebApp -.-|Client ID, Secret| AppConfig
     Auth0APIDoc -.-|Client ID, Secret| AppConfig
+    OpenRouterKey -.-|API Key| AppConfig
 ```
 
 ## Configuration
