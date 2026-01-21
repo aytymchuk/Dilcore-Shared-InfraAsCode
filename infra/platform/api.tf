@@ -83,7 +83,7 @@ resource "azurerm_storage_account" "grain_storage_account" {
   tags = var.tags
 }
 
-# Add Storage Blob Data Contributor role assignment for the API
+# Add Storage Table Data Contributor role assignment for the API
 resource "azurerm_role_assignment" "storage_access" {
   scope                = azurerm_storage_account.grain_storage_account.id
   role_definition_name = "Storage Table Data Contributor"
@@ -108,18 +108,31 @@ resource "null_resource" "create_sql_user" {
 
   provisioner "local-exec" {
     command = <<EOT
+      set -e
       SCRIPT_FILE=$(mktemp)
       cat > "$SCRIPT_FILE" <<'SQL'
-IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = '${azurerm_container_app.api.name}')
-BEGIN
-  CREATE USER [${azurerm_container_app.api.name}] FROM EXTERNAL PROVIDER;
-END
-ALTER ROLE db_datareader ADD MEMBER [${azurerm_container_app.api.name}];
-ALTER ROLE db_datawriter ADD MEMBER [${azurerm_container_app.api.name}];
+      IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = '${azurerm_container_app.api.name}')
+      BEGIN
+        CREATE USER [${azurerm_container_app.api.name}] FROM EXTERNAL PROVIDER;
+      END
+
+      IF IS_ROLEMEMBER('db_datareader', '${azurerm_container_app.api.name}') = 0
+      BEGIN
+        ALTER ROLE db_datareader ADD MEMBER [${azurerm_container_app.api.name}];
+      END
+
+      IF IS_ROLEMEMBER('db_datawriter', '${azurerm_container_app.api.name}') = 0
+      BEGIN
+        ALTER ROLE db_datawriter ADD MEMBER [${azurerm_container_app.api.name}];
+      END
 SQL
 
-      echo "Executing SQL script to create user..."
-      sqlcmd -S ${azurerm_mssql_server.sql.fully_qualified_domain_name} -d ${azurerm_mssql_database.sqldb.name} --authentication-method=ActiveDirectoryDefault -i "$SCRIPT_FILE"
+      echo "Executing SQL script to create user and assign roles..."
+      if ! sqlcmd -S ${azurerm_mssql_server.sql.fully_qualified_domain_name} -d ${azurerm_mssql_database.sqldb.name} --authentication-method=ActiveDirectoryDefault -i "$SCRIPT_FILE"; then
+        echo "SQL execution failed"
+        rm -f "$SCRIPT_FILE"
+        exit 1
+      fi
       
       rm -f "$SCRIPT_FILE"
     EOT

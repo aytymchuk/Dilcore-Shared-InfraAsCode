@@ -64,8 +64,8 @@ locals {
   env_short = substr(lower(var.env_name), 0, 3)
 
   api_app_name     = lower(replace("${local.env_short}-${var.api_name}", "/[^a-z0-9-]/", ""))
-  ai_core_app_name = lower(replace("${local.env_short}-ai-core", "/[^a-z0-9-]/", ""))
-  web_app_app_name = lower(replace("${local.env_short}-web-app", "/[^a-z0-9-]/", ""))
+  ai_core_app_name = lower(replace("${local.env_short}-${var.ai_core_name}", "/[^a-z0-9-]/", ""))
+  web_app_app_name = lower(replace("${local.env_short}-${var.web_app_name}", "/[^a-z0-9-]/", ""))
 
   default_tags = {
     CreatedBy   = "Terraform"
