@@ -1,0 +1,30 @@
+name: OpenRouter Infrastructure Deployment
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'infra/open-router-models/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'infra/open-router-models/**'
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  deploy:
+    name: Deploy OpenRouter Models
+    uses: ./.github/workflows/infra-template.yml
+    secrets: inherit
+    with:
+      componentName: "open-router-models"
+      environments: |
+        [
+          { "environment": "Development", "region": "westeurope" },
+          { "environment": "QA", "region": "westeurope" }
+        ]
