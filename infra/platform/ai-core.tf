@@ -24,6 +24,9 @@ resource "azurerm_container_app" "ai_core" {
         value = var.env_name
       }
     }
+
+    min_replicas = 0
+    max_replicas = 1
   }
 
   ingress {
