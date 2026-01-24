@@ -74,28 +74,3 @@ output "grain_storage_account_name" {
   value       = azurerm_storage_account.grain_storage_account.name
 }
 
-output "sql_server_fqdn" {
-  description = "The fully qualified domain name of the SQL Server."
-  value       = azurerm_mssql_server.sql.fully_qualified_domain_name
-}
-
-output "sql_server_name" {
-  description = "The name of the SQL Server."
-  value       = azurerm_mssql_server.sql.name
-}
-
-output "sql_server_id" {
-  description = "The ID of the SQL Server."
-  value       = azurerm_mssql_server.sql.id
-}
-
-output "sql_database_name" {
-  description = "The name of the SQL Database."
-  value       = azurerm_mssql_database.sqldb.name
-}
-
-output "sql_connection_string" {
-  description = "The connection string for the SQL Database using Managed Identity."
-  value       = "Server=tcp:${azurerm_mssql_server.sql.fully_qualified_domain_name},1433;Initial Catalog=${azurerm_mssql_database.sqldb.name};Authentication=Active Directory Managed Identity;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
-  sensitive   = true
-}

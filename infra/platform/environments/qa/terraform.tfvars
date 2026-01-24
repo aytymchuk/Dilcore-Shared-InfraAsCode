@@ -22,10 +22,3 @@ ai_core_container_memory = "1.0Gi"
 web_app_name             = "web-app"
 web_app_container_cpu    = 0.5
 web_app_container_memory = "1.0Gi"
-
-# SQL Database
-sql_database_name    = "sqldb"
-sql_admin_login      = "sqladmin"
-sql_sku_name         = "GP_S_Gen5_1"
-sql_min_capacity     = 0.5
-sql_auto_pause_delay = 60

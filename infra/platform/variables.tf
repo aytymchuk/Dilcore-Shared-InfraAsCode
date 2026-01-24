@@ -181,32 +181,3 @@ variable "app_config_id" {
   type        = string
   default     = "$(SHARED_APP_CONFIGURATION_ID)"
 }
-variable "sql_admin_login" {
-  description = "The administrator login name for the SQL Server."
-  type        = string
-  default     = "sqladmin"
-}
-
-variable "sql_database_name" {
-  description = "The name of the SQL Database."
-  type        = string
-  default     = "sqldb"
-}
-
-variable "sql_sku_name" {
-  description = "The SKU name for the SQL Database."
-  type        = string
-  default     = "GP_S_Gen5_1"
-}
-
-variable "sql_auto_pause_delay" {
-  description = "Time in minutes after which the database is automatically paused."
-  type        = number
-  default     = 60
-}
-
-variable "sql_min_capacity" {
-  description = "The minimum capacity of the database in vCores."
-  type        = number
-  default     = 0.5
-}
